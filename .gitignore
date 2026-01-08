@@ -1,0 +1,16 @@
+# Python temporary files
+__pycache__/
+*.py[cod]
+
+# Virtual Environment (Very Important to ignore)
+venv/
+env/
+.env
+
+# Database (Don't upload your user data)
+instance/
+*.sqlite3
+*.db
+
+# OS files
+.DS_Store

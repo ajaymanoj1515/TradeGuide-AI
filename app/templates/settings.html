@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | TradeGuide AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/theme.js') }}" defer></script>
+
+    <style>
+        body { height: 100vh; display: flex; overflow: hidden; margin: 0; background-color: var(--bg-body); }
+        .sidebar { width: 260px; display: flex; flex-direction: column; padding: 25px; backdrop-filter: blur(10px); z-index: 100; }
+        .main { flex: 1; display: flex; flex-direction: column; padding: 40px; overflow-y: auto; }
+        
+        /* Sidebar Styles */
+        .brand { font-size: 1.4em; font-weight: 800; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; margin-bottom: 8px; text-decoration: none; border-radius: 8px; transition: 0.3s; font-weight: 500; }
+        .nav-item.active { background: rgba(0, 210, 255, 0.1); color: #00d2ff; }
+
+        /* Settings Container */
+        .settings-container { max-width: 800px; margin: 0 auto; width: 100%; padding-bottom: 50px; }
+        
+        .section-card { 
+            background: var(--bg-card); border: 1px solid var(--border-color); 
+            border-radius: 12px; padding: 30px; margin-bottom: 25px;
+        }
+        .section-title { font-size: 1.1em; font-weight: 700; color: var(--text-main); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        
+        /* Form Elements */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; color: var(--text-muted); margin-bottom: 8px; font-size: 0.9em; }
+        .form-control { 
+            width: 100%; padding: 12px; background: var(--bg-body); 
+            border: 1px solid var(--border-color); color: var(--text-main); 
+            border-radius: 8px; box-sizing: border-box; font-size: 1em;
+        }
+        
+        /* Theme Selection Buttons */
+        .theme-options { display: flex; gap: 15px; }
+        .theme-btn {
+            flex: 1; padding: 15px; border: 1px solid var(--border-color); border-radius: 8px;
+            cursor: pointer; text-align: center; font-weight: 600; background: var(--bg-body); color: var(--text-muted);
+            transition: 0.2s;
+        }
+        .theme-btn.active { border-color: var(--accent-color); color: var(--accent-color); background: rgba(0, 210, 255, 0.05); }
+        .theme-btn i { font-size: 1.2em; display: block; margin-bottom: 5px; }
+
+        /* Buttons */
+        .btn { padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: var(--accent-color); color: #fff; }
+        .btn-danger { background: rgba(255, 82, 82, 0.1); color: #ff5252; border: 1px solid rgba(255, 82, 82, 0.2); }
+        .flash { padding: 15px; border-radius: 8px; margin-bottom: 20px; background: rgba(0, 230, 118, 0.1); color: #00e676; border: 1px solid #00e676; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="brand"><i class="fas fa-chart-line" style="color: var(--accent-color);"></i> &nbsp;TradeGuide<span>AI</span></div>
+        <div class="nav-links">
+            <a href="/dashboard" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="/prediction" class="nav-item"><i class="fas fa-bolt"></i> Prediction</a>
+            <a href="/portfolio" class="nav-item"><i class="fas fa-list"></i> Watchlist</a>
+            <a href="/news" class="nav-item"><i class="far fa-newspaper"></i> News Hub</a>
+            <a href="/settings" class="nav-item active"><i class="fas fa-cog"></i> Settings</a>
+        </div>
+        
+        <div style="margin-top:auto;">
+            <a href="#" id="theme-toggle" class="nav-item"><i class="fas fa-moon"></i> Theme</a>
+            <a href="/logout" class="nav-item" style="color: #ff5252;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main">
+        <h2 style="color:var(--text-main); margin-bottom:30px;">Settings & Preferences</h2>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}<div class="flash">{{ messages[0] }}</div>{% endif %}
+        {% endwith %}
+        
+        <div class="settings-container">
+            
+            <div class="section-card">
+                <div class="section-title"><i class="fas fa-palette"></i> Appearance</div>
+                <p style="color:var(--text-muted); font-size:0.9em; margin-bottom:20px;">Choose your interface theme.</p>
+                
+                <div class="theme-options">
+                    <div class="theme-btn" onclick="setTheme('dark')" id="btn-dark">
+                        <i class="fas fa-moon"></i> Cyber Dark
+                    </div>
+                    <div class="theme-btn" onclick="setTheme('light')" id="btn-light">
+                        <i class="fas fa-sun"></i> Pro Light
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title"><i class="fas fa-user-circle"></i> Account Details</div>
+                <form action="/settings/update_profile" method="POST">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="username" class="form-control" value="{{ user.username }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" value="{{ user.email }}">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                </form>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title"><i class="fas fa-lock"></i> Security</div>
+                <form action="/settings/change_password" method="POST">
+                    <div class="form-group">
+                        <label class="form-label">Current Password</label>
+                        <input type="password" name="current_password" class="form-control">
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">New Password</label>
+                            <input type="password" name="new_password" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" name="confirm_password" class="form-control">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Change Password</button>
+                </form>
+            </div>
+
+            <div class="section-card" style="border-color: rgba(255,82,82,0.3);">
+                <div class="section-title" style="color:#ff5252;"><i class="fas fa-exclamation-triangle"></i> Danger Zone</div>
+                <p style="color:var(--text-muted); font-size:0.9em; margin-bottom:20px;">
+                    Clear your watchlist and analysis history. This action cannot be undone.
+                </p>
+                <form action="/settings/clear_data" method="POST" onsubmit="return confirm('Are you sure? This deletes all your saved data.');">
+                    <button type="submit" class="btn btn-danger">Reset App Data</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- THEME LOGIC ---
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeButtons(theme);
+            
+            // Sync with sidebar icon if it exists
+            const sidebarIcon = document.querySelector('#theme-toggle i');
+            if(sidebarIcon) {
+                if(theme === 'light') {
+                    sidebarIcon.classList.remove('fa-moon');
+                    sidebarIcon.classList.add('fa-sun');
+                    document.body.classList.add('light-mode');
+                } else {
+                    sidebarIcon.classList.remove('fa-sun');
+                    sidebarIcon.classList.add('fa-moon');
+                    document.body.classList.remove('light-mode');
+                }
+            }
+        }
+
+        function updateThemeButtons(theme) {
+            document.getElementById('btn-dark').classList.remove('active');
+            document.getElementById('btn-light').classList.remove('active');
+            
+            if(theme === 'dark') document.getElementById('btn-dark').classList.add('active');
+            else document.getElementById('btn-light').classList.add('active');
+        }
+
+        // Init Theme on Load
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setTheme(savedTheme);
+    </script>
+</body>
+</html>

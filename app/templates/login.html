@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Terminal | TradeGuide AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; padding: 0; background-color: #050505; font-family: 'Inter', sans-serif; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
+        
+        /* Background Effects */
+        .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.5; z-index: 1; }
+        .orb-blue { width: 500px; height: 500px; background: #00d2ff; top: -100px; left: -100px; }
+        .orb-red { width: 500px; height: 500px; background: #ff0055; bottom: -100px; right: -100px; }
+        
+        /* Card Container */
+        .auth-card { background: rgba(25, 25, 25, 0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 40px; width: 360px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); z-index: 10; text-align: center; }
+        
+        h2 { color: #fff; margin: 0 0 5px 0; font-weight: 700; }
+        p.subtitle { color: #888; font-size: 0.9em; margin-bottom: 30px; }
+        
+        /* Form Elements */
+        .input-group { position: relative; margin-bottom: 15px; }
+        input { width: 100%; padding: 14px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 0.95em; box-sizing: border-box; transition: 0.3s; }
+        input:focus { border-color: #00d2ff; outline: none; background: rgba(0, 0, 0, 0.6); }
+        
+        .toggle-password { position: absolute; right: 15px; top: 15px; color: #aaa; cursor: pointer; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: 700; font-size: 1em; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-login { background: #00d2ff; color: #000; }
+        .btn-login:hover { background: #00b0d4; box-shadow: 0 0 15px rgba(0, 210, 255, 0.4); }
+        .btn-register { background: #ff0055; color: #fff; }
+        .btn-register:hover { background: #d60047; box-shadow: 0 0 15px rgba(255, 0, 85, 0.4); }
+
+        .toggle-link { display: block; margin-top: 20px; font-size: 0.85em; color: #aaa; cursor: pointer; }
+        .toggle-link:hover { color: #fff; text-decoration: underline; }
+        
+        /* Utility Class to Hide Sections */
+        .hidden { display: none; }
+        
+        .flash { background: rgba(255, 0, 85, 0.15); color: #ff5252; padding: 10px; border-radius: 6px; font-size: 0.9em; margin-bottom: 15px; border: 1px solid #ff5252; text-align: left; }
+        .flash-success { background: rgba(0, 230, 118, 0.15); color: #00e676; border-color: #00e676; }
+    </style>
+</head>
+<body>
+    <div class="orb orb-blue"></div>
+    <div class="orb orb-red"></div>
+    
+    <div class="auth-card">
+        <h2>TradeGuide AI</h2>
+        <p class="subtitle">Institutional Analytics Terminal</p>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {% if category == 'success' %}flash-success{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div id="login-box" class="{% if mode == 'register' %}hidden{% endif %}">
+            <form method="POST" action="/login">
+                <div class="input-group">
+                    <input type="text" name="username" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" name="password" id="login-pass" placeholder="Password" required>
+                    <i class="fas fa-eye toggle-password" onclick="togglePass('login-pass', this)"></i>
+                </div>
+                
+                <button type="submit" class="btn btn-login">Login Terminal</button>
+            </form>
+            <span class="toggle-link" onclick="showSection('register-box')">New trader? Create Account</span>
+        </div>
+
+        <div id="register-box" class="{% if mode != 'register' %}hidden{% endif %}">
+            <form method="POST" action="/register">
+                <div class="input-group">
+                    <input type="text" name="username" placeholder="Choose Username" required>
+                </div>
+                <div class="input-group">
+                    <input type="email" name="email" placeholder="Email Address" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" name="password" id="reg-pass" placeholder="Choose Password" required>
+                    <i class="fas fa-eye toggle-password" onclick="togglePass('reg-pass', this)"></i>
+                </div>
+                <button type="submit" class="btn btn-register">Create Account</button>
+            </form>
+            <span class="toggle-link" onclick="showSection('login-box')">Already have an account? Login</span>
+        </div>
+    </div>
+
+    <script>
+        function showSection(sectionId) {
+            document.getElementById('login-box').classList.add('hidden');
+            document.getElementById('register-box').classList.add('hidden');
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+
+        function togglePass(fieldId, icon) {
+            const input = document.getElementById(fieldId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = "password";
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
+</body>
+</html>

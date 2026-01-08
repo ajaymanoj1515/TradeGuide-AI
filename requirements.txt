@@ -1,0 +1,15 @@
+Flask
+Flask-SQLAlchemy
+Flask-Login
+yfinance
+pandas
+numpy
+plotly
+werkzeugFlask
+Flask-SQLAlchemy
+Flask-Login
+yfinance
+pandas
+numpy
+plotly
+werkzeug

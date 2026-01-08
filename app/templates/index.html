@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradeGuide AI | Smart Market Predictor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0; padding: 0;
+            background-color: #050505; color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            display: flex; flex-direction: column; height: 100vh;
+        }
+
+        /* --- AMBIENT GLOW EFFECTS (Blue & Red) --- */
+        .orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.4; pointer-events: none; z-index: 0; }
+        .orb-blue { width: 600px; height: 600px; background: #00d2ff; top: -200px; left: -100px; }
+        .orb-red { width: 600px; height: 600px; background: #ff0055; bottom: -200px; right: -100px; }
+
+        /* --- GLASS HEADER --- */
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 40px;
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed; top: 0; width: 100%; z-index: 1000; box-sizing: border-box;
+        }
+
+        /* LIVE TICKER STYLES */
+        .ticker-box { display: flex; gap: 30px; }
+        .ticker-item { display: flex; flex-direction: column; border-left: 2px solid rgba(255,255,255,0.1); padding-left: 15px; }
+        .ticker-item:first-child { border-left: none; padding-left: 0; }
+        
+        .t-name { color: #888; font-size: 0.75em; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .t-val { font-family: 'Courier New', monospace; font-weight: 700; font-size: 1em; color: #eee; margin-top: 2px; }
+
+        /* NAV BUTTONS */
+        .nav-buttons { display: flex; gap: 15px; }
+        .btn { text-decoration: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; font-size: 0.9em; transition: 0.3s; }
+        
+        .btn-login { border: 1px solid #333; color: #ccc; }
+        .btn-login:hover { border-color: #fff; color: #fff; }
+        
+        .btn-signup { background: #00d2ff; color: #000; }
+        .btn-signup:hover { background: #00c0eb; box-shadow: 0 0 20px rgba(0, 210, 255, 0.4); }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; position: relative; z-index: 2; margin-top: 60px;
+        }
+        
+        h1 {
+            font-size: 5em; font-weight: 800; letter-spacing: -2px; margin: 0; line-height: 1.1;
+        }
+        
+        .subtitle { 
+            color: #aaa; font-size: 1.5em; margin: 20px 0 50px; font-weight: 300; max-width: 700px; 
+        }
+
+        .cta-btn {
+            background: linear-gradient(90deg, #00d2ff, #0099ff);
+            color: white; padding: 18px 50px; border-radius: 8px;
+            text-decoration: none; font-weight: 700; font-size: 1.2em;
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.3); transition: 0.3s;
+        }
+        .cta-btn:hover { transform: translateY(-5px); box-shadow: 0 0 50px rgba(0, 210, 255, 0.6); }
+
+    </style>
+</head>
+<body>
+
+    <div class="orb orb-blue"></div>
+    <div class="orb orb-red"></div>
+
+    <nav class="navbar">
+        <div class="ticker-box" id="market-ticker">
+            <div class="ticker-item"><span class="t-name">NIFTY</span><span class="t-val">Loading...</span></div>
+            <div class="ticker-item"><span class="t-name">SENSEX</span><span class="t-val">--</span></div>
+            <div class="ticker-item"><span class="t-name">USD/INR</span><span class="t-val">--</span></div>
+            <div class="ticker-item"><span class="t-name">BTC</span><span class="t-val">--</span></div>
+        </div>
+
+        <div class="nav-buttons">
+    <a href="/login" class="btn btn-login">Login</a>
+    <a href="/register" class="btn btn-signup">Sign Up</a>
+</div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <h1>TradeGuide AI</h1>
+        <p class="subtitle">Smart Market Predictor for<br>Stocks, Forex & Crypto</p>
+        
+        <a href="/login" class="cta-btn">Explore Predictions</a>
+    </section>
+
+    <script>
+        async function updateMarketData() {
+            try {
+                const response = await fetch('/api/market_status');
+                const data = await response.json();
+                
+                const container = document.getElementById('market-ticker');
+                container.innerHTML = ''; // Clear loading text
+
+                Object.keys(data).forEach(key => {
+                    const item = data[key];
+                    const div = document.createElement('div');
+                    div.className = 'ticker-item';
+                    
+                    div.innerHTML = `
+                        <span class="t-name">${key}</span>
+                        <span class="t-val" style="color:${item.color}">${item.price} <span style="font-size:0.8em; opacity:0.8;">${item.change}</span></span>
+                    `;
+                    container.appendChild(div);
+                });
+
+            } catch (error) {
+                console.error("Market data fetch failed:", error);
+            }
+        }
+
+        // Run immediately, then refresh every 10 seconds
+        updateMarketData();
+        setInterval(updateMarketData, 10000); 
+    </script>
+</body>
+</html>

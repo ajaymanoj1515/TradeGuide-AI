@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watchlist | TradeGuide AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/theme.js') }}" defer></script>
+    
+    <style>
+        body { height: 100vh; display: flex; overflow: hidden; margin: 0; background-color: var(--bg-body); }
+        .sidebar { width: 260px; display: flex; flex-direction: column; padding: 25px; backdrop-filter: blur(10px); z-index: 100; }
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        .container { padding: 30px; max-width: 1000px; margin: 0 auto; width: 100%; }
+        
+        /* Styles from Dashboard for consistency */
+        .brand { font-size: 1.4em; font-weight: 800; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; margin-bottom: 8px; text-decoration: none; border-radius: 8px; transition: 0.3s; font-weight: 500; }
+        .nav-item.active { background: rgba(0, 210, 255, 0.1); color: #00d2ff; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; position: sticky; top: 0; z-index: 50; }
+
+        /* Watchlist Specific Styles */
+        .add-bar { background: var(--bg-card); padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
+        .wl-table { width: 100%; border-collapse: collapse; background: var(--bg-card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); }
+        .wl-table th, .wl-table td { padding: 18px 25px; text-align: left; border-bottom: 1px solid var(--border-color); color: var(--text-main); }
+        .wl-table th { background: var(--hover-bg); color: var(--text-muted); font-size: 0.85em; font-weight: 600; }
+        .add-input { padding: 10px 15px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-body); color: var(--text-main); }
+        .add-btn { padding: 10px 20px; background: #06b6d4; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="brand">
+            <i class="fas fa-chart-line" style="color: var(--accent);"></i> &nbsp;TradeGuide<span>AI</span>
+        </div>
+        
+        <div class="nav-links">
+            <a href="/dashboard" class="nav-item">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="/prediction" class="nav-item">
+                <i class="fas fa-bolt"></i> Prediction
+            </a>
+            <a href="/portfolio" class="nav-item active">
+                <i class="fas fa-list"></i> Watchlist
+            </a>
+            <a href="/news" class="nav-item">
+                <i class="far fa-newspaper"></i> News Hub
+            </a>
+            <a href="/settings" class="nav-item"><i class="fas fa-cog"></i> Settings</a>
+        </div>
+
+        <div style="margin-top:auto;">
+            <a href="#" id="theme-toggle" class="nav-item">
+                <i class="fas fa-moon"></i> Theme
+            </a>
+            <a href="/logout" class="nav-item" style="color: #ff5252;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h2 style="margin:0; color:var(--text-main);">My Watchlist</h2>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-weight: 600; color:var(--text-main);">{{ user.username }}</span>
+                <div style="width:30px; height:30px; background: linear-gradient(135deg, var(--accent), #007bff); border-radius:50%; display:flex; justify-content:center; align-items:center; color:#fff;">
+                    {{ user.username[0]|upper }}
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="add-bar">
+                <div>
+                    <strong style="color: var(--text-main); font-size: 1.1em;">Add Asset</strong>
+                    <div style="color: var(--text-muted); font-size: 0.9em;">Track your favorite symbols</div>
+                </div>
+                <form action="/watchlist/add" method="POST" style="display:flex; gap:10px;">
+                    <input type="text" name="ticker" class="add-input" placeholder="Symbol (e.g. TATAMOTORS)" required autocomplete="off">
+                    <select name="market_type" class="add-input">
+                        <option value="NSE">NSE (India)</option>
+                        <option value="BSE">BSE</option>
+                        <option value="CRYPTO">Crypto</option>
+                        <option value="FOREX">Forex</option>
+                    </select>
+                    <button type="submit" class="add-btn"><i class="fas fa-plus"></i> Add</button>
+                </form>
+            </div>
+
+            <table class="wl-table">
+                <thead>
+                    <tr>
+                        <th>SYMBOL</th>
+                        <th>MARKET</th>
+                        <th style="text-align:right;">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in watchlist %}
+                    <tr>
+                        <td style="font-weight: 700; display:flex; align-items:center; gap:10px;">
+                            <div style="width:8px; height:8px; background:#06b6d4; border-radius:50%;"></div>
+                            {{ item.ticker }}
+                        </td>
+                        <td><span style="font-size:0.8em; padding:4px 8px; background:var(--bg-body); border-radius:4px; color:var(--text-muted);">NSE / GLOBAL</span></td>
+                        <td style="text-align:right;">
+                            <a href="/prediction?ticker={{ item.ticker }}" style="color:var(--accent); text-decoration:none; margin-right:15px; font-weight:600;">Analyze</a>
+                            <a href="/watchlist/delete/{{ item.watchlist_id }}" style="color:#ef4444;"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" style="text-align:center; padding:50px; color:var(--text-muted);">Watchlist is empty.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
