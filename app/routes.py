@@ -38,7 +38,7 @@ def format_ticker(symbol, market_type):
 def index():
     if current_user.is_authenticated:
         if isinstance(current_user, Admin):
-            return redirect(url_for('main.admin_home'))
+            return redirect(url_for('main.admin_dashboard'))
         return redirect(url_for('main.dashboard'))
     return render_template('index.html')
 
@@ -46,7 +46,7 @@ def index():
 def login():
     if current_user.is_authenticated:
         if isinstance(current_user, Admin):
-            return redirect(url_for('main.admin_home'))
+            return redirect(url_for('main.admin_dashboard'))
         return redirect(url_for('main.dashboard'))
         
     if request.method == 'POST':
@@ -57,7 +57,7 @@ def login():
         admin = Admin.query.filter_by(username=username).first()
         if admin and admin.check_password(password):
             login_user(admin)
-            return redirect(url_for('main.admin_home'))
+            return redirect(url_for('main.admin_dashboard'))
             
         # 2. Try User Login
         user = User.query.filter_by(username=username).first()
@@ -103,7 +103,7 @@ def logout():
 @login_required
 def dashboard():
     if isinstance(current_user, Admin):
-        return redirect(url_for('main.admin_home'))
+        return redirect(url_for('main.admin_dashboard'))
     user_watchlist = Watchlist.query.filter_by(user_id=current_user.user_id).all()
     user_history = History.query.filter_by(user_id=current_user.user_id).order_by(History.timestamp.desc()).limit(10).all()
     return render_template('dashboard.html', user=current_user, watchlist=user_watchlist, history=user_history)
@@ -131,7 +131,7 @@ def news_page():
 @bp.route('/watchlist/add', methods=['POST'])
 @login_required
 def add_watchlist():
-    if isinstance(current_user, Admin): return redirect(url_for('main.admin_home'))
+    if isinstance(current_user, Admin): return redirect(url_for('main.admin_dashboard'))
     raw_ticker = request.form.get('ticker')
     market_type = request.form.get('market_type')
     ticker = format_ticker(raw_ticker, market_type)
@@ -256,7 +256,7 @@ def delete_user(user_id):
         History.query.filter_by(user_id=user_id).delete()
         db.session.delete(user)
         db.session.commit()
-    # If referer was users page, go back there
+    # Redirect back to the user list
     return redirect(url_for('main.admin_users'))
 
 # --- API ROUTES ---
