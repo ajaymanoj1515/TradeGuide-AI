@@ -1,41 +1,102 @@
-# 🛡️ TradeGuide AI: The "Risk-First" Logic Layer for Retail Traders
+# 🛡️ TradeGuide AI – Risk Intelligence Platform
 
-> **Status:** Active Development (v2.0)
-> **Tech Stack:** Python, FastAPI, TA-Lib, TextBlob (NLP), HTML5/JS
+> **"A Co-Pilot for Retail Traders that stops you from making emotional, money-losing decisions."**
 
-### 🚨 The Problem
-Most retail traders don't lose money because they can't find trades; they lose because they **force trades** in poor conditions. They trade blindly during choppy markets (sideways trends) or against institutional flow.
+TradeGuide AI is not just another stock predictor. It is a **Risk Intelligence Layer** that sits on top of market data to detect **Institutional Traps**, **Market Chop**, and **Time Decay Risk** in real-time. It acts as a firewall against bad trades.
 
-### 💡 The Solution
-**TradeGuide AI** is not just a screener. It is a **Pre-Execution Logic Layer**. It acts as a "Safety Shield" that validates market conditions *before* a trade signal is generated.
+![Project Status](https://img.shields.io/badge/Status-Beta-blue)
+![Python](https://img.shields.io/badge/Python-3.9%2B-yellow)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-### ⚡ Key Features
+---
 
-**1. The "Choppy Market" Guard (ADX Filter)**
-* **Logic:** Calculates the Average Directional Index (ADX) in real-time.
-* **Action:** If `ADX < 20`, the engine blocks "Trend Following" signals, preventing losses in sideways markets.
+## 🚀 Key Features (The "5-Pillar" Engine)
 
-**2. Smart Money Concepts (SMC) Engine**
-* **Logic:** Identifies "Order Blocks" and "Fair Value Gaps" (FVG) where institutions are likely to step in.
-* **Action:** Highlights high-probability reversal zones instead of standard support/resistance.
+### 1. 🚦 The Risk Shield (Anti-Chop)
+* **Problem:** 70% of breakouts fail because the market is sideways ("Choppy").
+* **Solution:** Uses **ADX (Average Directional Index)** to detect low-momentum zones.
+* **Logic:** If `ADX < 20`, the engine blocks "Buy" signals to prevent stop-loss hunting.
 
-**3. Sentiment Veto (NLP)**
-* **Logic:** Scrapes live news headlines and processes them using `TextBlob` and VADER analysis.
-* **Action:** If technicals say "Buy" but sentiment is "Negative," the AI vetoes the trade.
+### 2. 🪤 Trap Detector (Fakeout Protection)
+* **Problem:** Retail traders get trapped buying "fake breakouts" (High Price, Low Volume).
+* **Solution:** A **Volume Divergence Algorithm** that flags price moves unsupported by volume.
+* **Output:** `⚠️ TRAP DETECTED` warning on the dashboard.
 
-### 📸 Interface (Dark Mode)
+### 3. 🏦 Institutional Intelligence (SMC)
+* **Problem:** Support/Resistance lines are often broken by big banks to grab liquidity.
+* **Solution:** Identifies **Order Blocks (OB)** and **Fair Value Gaps (FVG)** using Smart Money Concepts.
+* **Output:** Highlights "Institutional Entry Zones" instead of random lines.
 
-*(Designed to match the aesthetic of modern brokerage terminals like Kite)*
-<img width="1919" height="909" alt="Screenshot 2026-01-20 205821" src="https://github.com/user-attachments/assets/8c5ea9c1-5204-4ba1-9c4b-5fbcd9769e08" />
+### 4. 📰 News Sentiment Veto
+* **Problem:** Technicals lag behind breaking news.
+* **Solution:** Uses **NLP (TextBlob)** to scan live headlines.
+* **Logic:** If `Technicals = BUY` but `News = NEGATIVE`, the trade is **Vetoed**.
 
-### 🚀 How to Run Locally
+### 5. 📉 Option Decay Meter
+* **Problem:** Option buyers lose money to Time Decay (Theta) even if the direction is right.
+* **Solution:** Compares **Historical Volatility** vs. **Trend Strength** to warn if a trade will bleed value due to Theta.
 
-```bash
-# 1. Clone the repo
-git clone [https://github.com/ajaymanoj1515/TradeGuide-AI.git](https://github.com/ajaymanoj1515/TradeGuide-AI.git)
+---
 
-# 2. Install dependencies
-pip install -r requirements.txt
+## 🛠️ Tech Stack
 
-# 3. Run the app
-python app.py
+* **Backend:** Flask (Python)
+* **Data Engine:** `yfinance` (Live Market Data)
+* **Analysis:** `pandas`, `numpy`, `scipy` (Statistical Modeling)
+* **NLP:** `TextBlob` (Sentiment Analysis)
+* **Frontend:** HTML5, CSS3 (Dark Theme), ApexCharts.js (Interactive Charts)
+
+---
+
+## ⚙️ Installation & Setup
+
+1.  **Clone the Repository**
+    ```bash
+    git clone [https://github.com/YOUR_USERNAME/TradeGuideAI.git](https://github.com/YOUR_USERNAME/TradeGuideAI.git)
+    cd TradeGuideAI
+    ```
+
+2.  **Install Dependencies**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+3.  **Run the Application**
+    ```bash
+    python run.py
+    ```
+
+4.  **Open Dashboard**
+    * Go to: `http://127.0.0.1:5000`
+    * **Login:** Create a new user account (Data is saved locally in `instance/database.db`).
+
+---
+
+## 📸 Screenshots
+
+
+<img width="1918" height="903" alt="risk engine page" src="https://github.com/user-attachments/assets/b9da3b25-acc4-4cad-a875-698cf47ee3b3" />
+
+* **Risk Dashboard:** Real-time analysis of ADX, Traps, and Sentiment.
+
+
+---
+
+## 🤝 Contributing
+
+This project is open for contributions!
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
+
+---
+
+## ⚠️ Disclaimer
+
+**Not Financial Advice.** This tool is for educational and analytical purposes only. Trading stocks and options involves high risk. Always consult a certified financial advisor before trading.
+
+---
+
+**Built with 💻 & ☕ by AJAY MANOJ
