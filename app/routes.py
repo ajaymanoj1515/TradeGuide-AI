@@ -10,7 +10,7 @@ from .news import NewsEngine
 
 bp = Blueprint('main', __name__)
 
-# --- USER LOADER (Handles User & Admin IDs) ---
+# --- USER LOADER ---
 @login_manager.user_loader
 def load_user(user_id):
     if user_id.startswith('admin_'):
@@ -33,7 +33,6 @@ def format_ticker(symbol, market_type):
     return symbol
 
 # --- AUTH ROUTES ---
-
 @bp.route('/')
 def index():
     if current_user.is_authenticated:
@@ -53,13 +52,13 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        # 1. Try Admin Login
+        # Admin Login
         admin = Admin.query.filter_by(username=username).first()
         if admin and admin.check_password(password):
             login_user(admin)
             return redirect(url_for('main.admin_dashboard'))
             
-        # 2. Try User Login
+        # User Login
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             login_user(user)
@@ -86,7 +85,6 @@ def register():
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
-        
         login_user(new_user)
         return redirect(url_for('main.dashboard'))
     return render_template('login.html', mode='register')
@@ -97,8 +95,7 @@ def logout():
     logout_user()
     return redirect(url_for('main.index'))
 
-# --- USER FEATURES ---
-
+# --- DASHBOARD ROUTES ---
 @bp.route('/dashboard')
 @login_required
 def dashboard():
@@ -128,6 +125,7 @@ def news_page():
     engine.fetch_general_news(category)
     return render_template('news.html', news_list=engine.get_data(), category=category)
 
+# --- WATCHLIST ACTIONS ---
 @bp.route('/watchlist/add', methods=['POST'])
 @login_required
 def add_watchlist():
@@ -154,7 +152,6 @@ def delete_watchlist(id):
     return redirect(url_for('main.dashboard'))
 
 # --- SETTINGS ROUTES ---
-
 @bp.route('/settings')
 @login_required
 def settings():
@@ -165,12 +162,10 @@ def settings():
 def update_profile():
     new_username = request.form.get('username')
     new_email = request.form.get('email')
-    
     existing = User.query.filter_by(username=new_username).first()
     if existing and existing.user_id != current_user.user_id:
         flash('Username taken.')
         return redirect(url_for('main.settings'))
-        
     current_user.username = new_username
     current_user.email = new_email
     db.session.commit()
@@ -183,15 +178,12 @@ def change_password():
     current_pw = request.form.get('current_password')
     new_pw = request.form.get('new_password')
     confirm_pw = request.form.get('confirm_password')
-
     if not current_user.check_password(current_pw):
         flash('Incorrect current password.')
         return redirect(url_for('main.settings'))
-
     if new_pw != confirm_pw:
         flash('Passwords do not match.')
         return redirect(url_for('main.settings'))
-
     current_user.set_password(new_pw)
     db.session.commit()
     flash('Password changed successfully.')
@@ -207,7 +199,6 @@ def clear_data():
     return redirect(url_for('main.settings'))
 
 # --- ADMIN ROUTES ---
-
 @bp.route('/admin')
 @login_required
 def admin_home():
@@ -218,9 +209,9 @@ def admin_home():
 def admin_dashboard():
     if not isinstance(current_user, Admin): return redirect(url_for('main.dashboard'))
     return render_template('admin.html', 
-                         page='dashboard', 
-                         user_count=User.query.count(),
-                         users=User.query.limit(5).all())
+                          page='dashboard', 
+                          user_count=User.query.count(),
+                          users=User.query.limit(5).all())
 
 @bp.route('/admin/users')
 @login_required
@@ -251,12 +242,10 @@ def delete_user(user_id):
     if not isinstance(current_user, Admin): return redirect(url_for('main.dashboard'))
     user = User.query.get(user_id)
     if user:
-        # Clean up related data
         Watchlist.query.filter_by(user_id=user_id).delete()
         History.query.filter_by(user_id=user_id).delete()
         db.session.delete(user)
         db.session.commit()
-    # Redirect back to the user list
     return redirect(url_for('main.admin_users'))
 
 # --- API ROUTES ---
@@ -280,6 +269,83 @@ def market_status():
             data[name] = {'price': 'Error', 'change': '', 'color': '#aaa'}
     return jsonify(data)
 
+# --- MARKET-PROOF HERO STATS ---
+# --- MARKET-PROOF HERO STATS ---
+@bp.route('/api/hero_stats')
+@login_required
+def hero_stats():
+    # 1. Fallback Data (So it never shows "Scanning...")
+    most_traded = {
+        "symbol": "HDFCBANK", 
+        "price": "1,450.20", 
+        "volume": "15.2M", 
+        "change": "1.25", 
+        "is_positive": True  # Standard Python bool, this is fine
+    }
+    
+    vol_shock = {
+        "symbol": "TATASTEEL", 
+        "price": "142.50", 
+        "volume": "40.5M", 
+        "change": "-0.80", 
+        "is_positive": False # Standard Python bool, this is fine
+    }
+
+    try:
+        # 2. Scan Stocks (Fetch 5 Days so it works when market is closed)
+        stocks = ['HDFCBANK.NS', 'RELIANCE.NS', 'TATASTEEL.NS', 'SBIN.NS', 'INFY.NS', 'ICICIBANK.NS']
+        
+        max_turnover = 0
+        max_volume = 0
+        
+        for symbol in stocks:
+            try:
+                t = yf.Ticker(symbol)
+                # Fetch 5 days to get the last valid trading day
+                hist = t.history(period='5d')
+                
+                if not hist.empty:
+                    # Get Last Valid Row
+                    last_row = hist.iloc[-1]
+                    prev_row = hist.iloc[-2] if len(hist) > 1 else last_row
+                    
+                    current_price = last_row['Close']
+                    volume = last_row['Volume']
+                    
+                    # Calculate change
+                    change = ((current_price - prev_row['Close']) / prev_row['Close']) * 100
+                    turnover = current_price * volume
+                    
+                    stock_data = {
+                        "symbol": symbol.replace(".NS", ""),
+                        "price": f"{current_price:,.2f}",
+                        "volume": f"{round(volume/1000000, 2)}M",
+                        "change": f"{change:.2f}",
+                        # FIX IS HERE: Force conversion to standard Python bool
+                        "is_positive": bool(change >= 0)
+                    }
+                    
+                    # Determine Winner
+                    if turnover > max_turnover:
+                        max_turnover = turnover
+                        most_traded = stock_data
+                        
+                    if volume > max_volume:
+                        max_volume = volume
+                        vol_shock = stock_data
+                        
+            except:
+                continue
+
+    except Exception as e:
+        print(f"Scanner Error: {e}")
+
+    # 3. Return Winner (Real or Fallback)
+    return jsonify({
+        "most_traded": most_traded,
+        "volume_shock": vol_shock
+    })
+
 @bp.route('/api/analyze', methods=['POST'])
 @login_required
 def api_analyze():
@@ -298,8 +364,6 @@ def api_analyze():
     
     if tech_success:
         result_data = tech_engine.generate_signal(style=style)
-        
-        # --- SAVE HISTORY ---
         try:
             new_entry = History(
                 user_id=current_user.user_id,
